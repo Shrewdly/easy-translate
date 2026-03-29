@@ -1,6 +1,5 @@
 import json
 import anthropic
-from pathlib import Path
 
 from tools import TOOLS, TOOL_DESCRIPTIONS
 from prompts.system_prompt import SYSTEM_PROMPT
@@ -85,7 +84,6 @@ class Agent:
             if not user_input.strip():
                 continue
 
-            self.state["iterations"] += 1
             self.state["retry_count"] = 0
             self.state["last_error"] = None
 
@@ -115,6 +113,8 @@ class Agent:
                     result = tool_fn(**action_input)
                 except Exception as e:
                     result = {"error": str(e), "success": False}
+
+                self.state["last_error"] = None
 
                 if action == "search_arxiv":
                     self.state["context"]["arxiv_results"] = result
