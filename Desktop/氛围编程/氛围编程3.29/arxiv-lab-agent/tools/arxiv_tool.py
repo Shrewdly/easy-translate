@@ -1,6 +1,7 @@
 from typing import List, Dict
 import urllib.request
 import urllib.parse
+import urllib.error
 import ssl
 import certifi
 import xml.etree.ElementTree as ET
@@ -33,8 +34,13 @@ def search_arxiv(query: str, max_results: int = 20) -> List[Dict]:
     url = f"{ARXIV_API}?{urllib.parse.urlencode(params)}"
     context = ssl.create_default_context(cafile=certifi.where())
 
-    with urllib.request.urlopen(url, timeout=30, context=context) as response:
-        data = response.read().decode("utf-8")
+    try:
+        with urllib.request.urlopen(url, timeout=30, context=context) as response:
+            data = response.read().decode("utf-8")
+    except urllib.error.URLError as e:
+        raise Exception(f"Failed to connect to ArXiv API: {e}")
+    except Exception as e:
+        raise Exception(f"ArXiv API request failed: {e}")
 
     root = ET.fromstring(data)
     ns = {"atom": "http://www.w3.org/2005/Atom", "arxiv": "http://arxiv.org/schemas/atom"}
