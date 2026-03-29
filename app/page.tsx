@@ -1,9 +1,8 @@
-import { createClient } from '@/lib/supabase'
+import { getUser } from '@/lib/auth'
 import TranslateForm from '@/components/TranslateForm'
 
 export default async function Home() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUser()
 
   if (!user) {
     return (

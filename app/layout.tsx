@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
-import { createClient } from "@/lib/supabase";
+import { getUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "EasyTranslate",
@@ -13,8 +13,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUser()
 
   return (
     <html lang="zh">
