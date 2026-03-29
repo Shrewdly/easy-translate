@@ -1,3 +1,5 @@
+import md5 from 'md5'
+
 const BAIDU_API_URL = 'https://fanyi-api.baidu.com/api/trans/vip/translate'
 
 function generateSalt(): string {
@@ -6,14 +8,7 @@ function generateSalt(): string {
 
 function generateSign(appId: string, query: string, salt: string, secret: string): string {
   const str = `${appId}${query}${salt}${secret}`
-  // 简单实现，实际应使用 MD5
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  return Math.abs(hash).toString(16)
+  return md5(str)
 }
 
 export async function translate(
@@ -47,6 +42,10 @@ export async function translate(
 
   if (data.error_code) {
     throw new Error(`Baidu API error: ${data.error_code} - ${data.error_msg}`)
+  }
+
+  if (!data.trans_result || data.trans_result.length === 0) {
+    throw new Error('No translation result returned')
   }
 
   return data.trans_result[0].dst
