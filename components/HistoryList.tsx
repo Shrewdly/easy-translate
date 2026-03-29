@@ -18,12 +18,16 @@ interface HistoryListProps {
 export default function HistoryList({ userId }: HistoryListProps) {
   const [translations, setTranslations] = useState<Translation[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchHistory()
   }, [userId])
 
   async function fetchHistory() {
+    setLoading(true)
+    setError(null)
     const { data, error } = await supabase
       .from('translations')
       .select('*')
@@ -31,19 +35,37 @@ export default function HistoryList({ userId }: HistoryListProps) {
       .order('created_at', { ascending: false })
       .limit(50)
 
-    if (!error && data) {
+    if (error) {
+      setError('加载失败，请稍后重试')
+    } else if (data) {
       setTranslations(data)
     }
     setLoading(false)
   }
 
   async function handleDelete(id: string) {
-    await supabase.from('translations').delete().eq('id', id)
+    setDeletingId(id)
+    const { error } = await supabase.from('translations').delete().eq('id', id)
+    if (error) {
+      setError('删除失败，请稍后重试')
+      setDeletingId(null)
+      return
+    }
     setTranslations(prev => prev.filter(t => t.id !== id))
+    setDeletingId(null)
   }
 
   if (loading) {
     return <p className="text-gray-500">加载中...</p>
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p className="text-red-500 mb-4">{error}</p>
+        <button onClick={fetchHistory} className="text-blue-500 underline">重试</button>
+      </div>
+    )
   }
 
   if (translations.length === 0) {
@@ -64,9 +86,10 @@ export default function HistoryList({ userId }: HistoryListProps) {
             </div>
             <button
               onClick={() => handleDelete(t.id)}
-              className="text-red-500 hover:text-red-600 text-sm"
+              disabled={deletingId === t.id}
+              className="text-red-500 hover:text-red-600 text-sm disabled:opacity-50"
             >
-              删除
+              {deletingId === t.id ? '删除中...' : '删除'}
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-2">
