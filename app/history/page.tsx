@@ -1,10 +1,9 @@
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import NavBar from '@/components/NavBar'
 import HistoryList from '@/components/HistoryList'
 
 export default async function HistoryPage() {
-  const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
 
